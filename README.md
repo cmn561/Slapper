@@ -1,6 +1,4 @@
 # Slapper
- Slapper Reinforcement Learning Project
-
 Project Inspired by Melanie Mitchell's "Artificial Intelligence : A Guide To Thinking Humans"
 
 Overview/Inspiration:
