@@ -4,7 +4,7 @@
 import pygame
 from pygame.locals import *
 import numpy as np
-import copy as cp
+# import copy as cp
 
 import matplotlib.pyplot as plt
 
@@ -568,13 +568,13 @@ while True:
                     new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score = game.initialize_player_grid()
                 if event.key == pygame.locals.K_q:
                     print('Start Q-Learning')
-                    NUM_TRIALS = 100
-                    NUM_GAMES = 75000
-                    ALPHA=0.5
+                    NUM_TRIALS = 1
+                    NUM_GAMES = 200000
+                    ALPHA=0.1
                     DISCOUNT=0.9
                     EPSILON=1
-                    EPSILON_DECAY=0.99997
-                    # EPSILON_DECAY=0.9
+                    # EPSILON_DECAY=0.99997
+                    EPSILON_DECAY=1
                     EPSILON_MIN=0.15
                     
                     # Creat agent and start learning to play
@@ -585,7 +585,6 @@ while True:
                     
                     # print("Policy number of states".format(len(policy.keys())))
                         
-                    
                 if event.key == pygame.locals.K_s:
                     print('Sim the Learned Agent')
                     game.initialize_agent_grid()
