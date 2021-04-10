@@ -3,16 +3,14 @@
 
 import pygame
 from pygame.locals import *
-import numpy as np
-# import copy as cp
-
-import matplotlib.pyplot as plt
-
 import random
+import functools as functools
+import numpy as np
+import matplotlib.pyplot as plt
 
 from time import sleep
 
-#%% Class Definitions
+#%% Window Class Defintion (for displaying the game)
 
 # Class for the display window
 class Window():
@@ -112,7 +110,7 @@ class Window():
             
         pygame.display.flip()
 
-# Class for Managing the game
+#%% Game Class Defintion (for managing the game)
 class Game():
     def __init__(self, grid_y, grid_x, start_y, start_x, reward, win_states):
         self.grid_y = grid_y
@@ -146,15 +144,7 @@ class Game():
         
         # return self.start_y, self.start_x, 0, 0, 0, 0, 0, 0, 0, 0, 0
         return self.start_y, self.start_x, 0, 0, 0, 0, 0, 0
-    
-    def start_learning(self):
-        self.current_y = self.start_y
-        self.current_x = self.start_x
         
-        self.environment = [[1,1,1,1,1,1],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
-        
-        return self.start_y, self.start_x, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    
     def start_game(self):
         self.is_running = True
         
@@ -172,7 +162,6 @@ class Game():
         return self.is_running
         
     def get_environment(self):
-        
         return self.environment
 
     def game_floor(self, value):
@@ -370,7 +359,9 @@ class Game():
         # return self.current_y, self.current_x, h_N, h_E, h_S, h_W, h_NE, h_SE, h_SW, h_NW, score, done
         return self.current_y, self.current_x, h_NE, h_SE, h_SW, h_NW, h_onHazard, score, done
 
-# The class for the default Reinforcement Learning Agent (i.e completely random choices). Just for demonstration.
+#%% Agent Class Defintions (for learning the game)
+
+## This Class is the default agent (i.e. all random decisions)
 class DefaultAgent():           
     def choose_action_per_policy(self, policy, new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard):
         state = (new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard)
@@ -384,7 +375,7 @@ class DefaultAgent():
             return random.randint(0,3)
             print('Chose Random Move')
         
-# The class for the Reinforcement Learning Q Agent
+## This Class is the Q-Learning agent 
 class QAgent():
     def __init__(self, num_games, learn_rate, discount, epsilon, epsilon_decay, epsilon_min):
         self.num_games = num_games
@@ -393,11 +384,6 @@ class QAgent():
         self.epsilon = epsilon
         self.epsilon_decay = epsilon_decay
         self.epsilon_min = epsilon_min
-    
-        # # Value for an action in a state
-        # self.Q_table = {}
-        # # Number of times a state has been encountered
-        # self.N_table = {}
     
     def choose_action(self, state, Q_table, current_epsilon):     
         # Choose action according to epsilon greedy
@@ -416,6 +402,7 @@ class QAgent():
         
         trial_Q_table = {}
         trial_N_table = {}
+        score_running_average = 0
         score_performance = np.empty((self.num_games,))      
         current_epsilon = self.epsilon
         
@@ -423,7 +410,6 @@ class QAgent():
             # new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score = game.initialize_agent_grid()
             new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score = game.initialize_agent_grid()
                             
-            # num_moves=0
             done=False
             action = 0
             while (done != True):
@@ -436,12 +422,12 @@ class QAgent():
                 # Check if state has occured before
                 state_action_Q = np.zeros((4,))
                 if state in trial_Q_table.keys():
-                    # Choose Random Move if no record of this state before
+                    # Choose Move according to epsilon-greedy method
                     action = self.choose_action(state, trial_Q_table, current_epsilon)                       
                     state_action_Q = trial_Q_table[state]
                     trial_N_table[state] += 1
                 else: 
-                    # action = self.choose_action(state, trial_Q_table, current_epsilon)
+                    # Choose Random Move if no record of this state before
                     action = random.randint(0, 3)
                     
                     trial_Q_table[state] = state_action_Q
@@ -464,7 +450,7 @@ class QAgent():
                 if new_state in trial_Q_table.keys():
                     new_state_action_Q = trial_Q_table[new_state]
                 
-                Q_retain = (1-self.learn_rate) * trial_Q_table[state][action]
+                Q_retain = (1-self.learn_rate) * state_action_Q[action]
                 Q_learn = self.learn_rate * (score + DISCOUNT * max(new_state_action_Q))
                 
                 trial_Q_table[state][action] = Q_retain + Q_learn
@@ -489,16 +475,20 @@ class QAgent():
                 #     print(Q_learn)
                     
                 #     print('-----------------------------')
-                
-            score_performance[game_index] = score
+            ## end current game
+            
+            score_running_average = score_running_average + 1/(game_index+1) * (score-score_running_average)
+            score_performance[game_index] = score_running_average
+            
             # print('Game {0} has Score {1} with epsilon {2}'.format(game_index, score, current_epsilon))
         
             # Reduce epsilon (if over the min amount)
             if current_epsilon > self.epsilon_min:
                 current_epsilon = current_epsilon * self.epsilon_decay
-        
-        ## end game          
-                    
+                
+                      
+        ## end learning
+            
         # Testing
         # print('=================================Q-Table Values==============================')
         # for key in trial_Q_table.keys():
@@ -523,29 +513,160 @@ class QAgent():
             print('Chose Random Move')
 
 
-# The class for the Reinforcement Learning Double Q Agent
+## This Class is the Double Q-Learning agent 
 class DQAgent():
-    def __init__(self, grid_y, grid_x, start_y, start_x, reward):
-        self.grid_y = grid_y
-        self.grid_x = grid_x
-        self.start_y = start_y
-        self.start_x = start_x
-        self.reward = reward
+    def __init__(self, num_games, learn_rate, discount, epsilon, epsilon_decay, epsilon_min):
+        self.num_games = num_games
+        self.learn_rate = learn_rate
+        self.discount = discount
+        self.epsilon = epsilon
+        self.epsilon_decay = epsilon_decay
+        self.epsilon_min = epsilon_min
+    
+    def choose_action(self, state, Q1_table, Q2_table, current_epsilon):     
+        # Choose action according to epsilon greedy
+        random_roll=random.random()
+        if (random_roll<current_epsilon):
+            #Explore
+            movement_ind = random.randint(0, 3)
+        else:
+            #Exploit (With Random Tiebreaker)
 
-        self.Q1_Table = {}
-        self.Q2_Table = {}
-
-        self.current_y = start_y        
-        self.current_x = start_x
+            # Add the Q values for both q table to make a decision
+            Q_values = np.add((Q1_table.get(state, False) or np.zeros((4,))), (Q2_table.get(state, False) or np.zeros((4,))))
+            movement_ind = np.random.choice(np.argwhere(Q_values == np.amax(Q_values)).flatten().tolist())
         
+        return movement_ind
+    
+    def learn(self, game): 
+        trial_Q1_table = {}
+        trial_Q2_table = {}
+        trial_N_table = {}
+        score_running_average = 0
+        score_performance = np.empty((self.num_games,))      
+        current_epsilon = self.epsilon
+        
+        for game_index in range(self.num_games):
+            # new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score = game.initialize_agent_grid()
+            new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score = game.initialize_agent_grid()
+                            
+            done=False
+            action = 0
+            while (done != True):
+            # while (num_moves < 4):
+                # Given state, use epsilon-greedy method to choose an action
+                # state = (new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW)
+                state = (new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard)
+                # print('Current State is : ' + str(state))
+                                    
+                # Check if state has occured before
+                state_action_Q = np.zeros((4,))
+                if (state in trial_Q1_table.keys()) or (state in trial_Q2_table.keys()):
+                    # Choose Move according to epsilon-greedy method
+                    action = self.choose_action(state, trial_Q1_table, trial_Q2_table, current_epsilon)                       
+                    trial_N_table[state] += 1
+                else: 
+                    # Choose Random Move if no record of this state before
+                    action = random.randint(0, 3)
+                    
+                    trial_Q1_table[state] = state_action_Q
+                    trial_Q2_table[state] = state_action_Q
+                    trial_N_table[state] = 1
+                                            
+                # print('Action is : ' + str(action))
+                # print('current_state ')
+                # print(state)                        
+                    
+                # new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score, done = game.sim_move(action)
+                # new_state = (new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW)
+                new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score, done = game.sim_move(action)
+                new_state = (new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard)
 
-    # def run_iteration():
-    #     x=0
+                # print('new_state ')
+                # print(new_state)
+                
+                # Do Double Q-Learning (Get Current Reward and Expected Reward of new state and update ONE q table randomly)
+                # Update Q1 Table (using Q2 new_state state-action values)
+                if random.random() < .5:        
+                    print(state)
+                    print(trial_Q1_table.get(state, False) or np.zeros((4,)))
+                    new_state_Q1_values = (trial_Q1_table.get(state, False) or np.zeros((4,)))
+                    best_action_ind_new_state = np.random.choice(np.argwhere(new_state_Q1_values == np.amax(new_state_Q1_values)).flatten().tolist())
+                    
+                    trial_Q1_table[state][action] = (trial_Q1_table.get(state, False) or np.zeros((4,)))[action]
+                    + self.learn_rate * (score + self.discount(trial_Q2_table.get(new_state, False) or np.zeros((4,))[best_action_ind_new_state]) - trial_Q1_table[state][action])
+                                
+                # Update Q2 Table (using Q1 new_state state-action values)
+                else:
+                    print(state)
+                    print(trial_Q2_table.get(state, False) or np.zeros((4,)))
+                    new_state_Q2_values = (trial_Q2_table.get(state, False) or np.zeros((4,)))
+                    best_action_ind_new_state = np.random.choice(np.argwhere(new_state_Q2_values == np.amax(new_state_Q2_values)).flatten().tolist())
+                    
+                    trial_Q2_table[state][action] = (trial_Q2_table.get(state, False) or np.zeros((4,)))[action]
+                    + self.learn_rate * (score + self.discount(trial_Q1_table.get(new_state, False) or np.zeros((4,))[best_action_ind_new_state]) - trial_Q2_table[state][action])
+                
+                # print(game.environment)
+            
+                # num_moves+=1
+                                    
+                # Testing
+                # if (state == (3,3,1,0,0,0,0) and action == 0):
+                #     print('Cur State : {0}'.format(state))
+                #     # print('Action is {0}'.format(action))
+                #     print('Q {0}'.format(trial_Q_table[(3,3,1,0,0,0,0)]))
+                #     print('New State : {0}'.format(new_state))
+                #     print('Q {0}'.format(new_state_action_Q))
+                    
+                #     # print('Done is {0}'.format(done))
+                #     # print('Score is {0}'.format(score))
+                    
+                #     print(Q_retain)
+                #     print(Q_learn)
+                    
+                #     print('-----------------------------')
+            ## end current game
+            
+            score_running_average = score_running_average + 1/(game_index+1) * (score-score_running_average)
+            score_performance[game_index] = score_running_average
+            
+            print('Game {0} has Score {1} with epsilon {2}'.format(game_index, score, current_epsilon))
+        
+            # Reduce epsilon (if over the min amount)
+            if current_epsilon > self.epsilon_min:
+                current_epsilon = current_epsilon * self.epsilon_decay
+                   
+        ## end learning
+            
+        # Testing
+        # print('=================================Q-Table Values==============================')
+        # for key in trial_Q_table.keys():
+        #     print(key)
+        #     print(trial_Q_table[key])
+            
+        # agent.Q_table = trial_Q_table
+        
+        # Consolidate both Q1 and Q2 tables into one master table        
+        consolidated_Q_policy = {}
+        all_keys = functools.reduce(lambda x, y: x.union(y.keys()), [d1,d2], set())
+        for key in all_keys():
+            consolidated_Q_policy[key] = np.add((trial_Q1_table.get(key, False) or np.zeros((4,))), (trial_Q2_table.get(key, False) or np.zeros((4,))))   
 
-    # def update(self, action):
-    #     x=0
+        return consolidated_Q_policy, score_performance
+
+    def choose_action_per_policy(self, policy, new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard):
+        state = (new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard)
+        
+        # if state in policy dictionary
+        if (state in policy.keys()):
+            return np.argmax(policy[state])     
+            print('Chose Best Move')
+        # if state not in policy dictionary
+        else: 
+            return random.randint(0,3)
+            print('Chose Random Move')
    
-#%% Start Playing/Learning
+#%% Initiialize Classes and Start Playing
 
 width, height = 1000, 600
 background_color = 250, 250, 250
@@ -568,7 +689,6 @@ policy={}
 
 # new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score = game.initialize_player_grid()
 new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score = game.initialize_player_grid()
-
 
 # Event loop
 while True:
@@ -626,13 +746,14 @@ while True:
 
                 if event.key == pygame.locals.K_q:
                     print('Start Q-Learning')
-                    NUM_GAMES = 100000
+                    NUM_GAMES = 125000
+                    # NUM_GAMES = 10000
                     ALPHA=0.5
                     DISCOUNT=0.9
                     EPSILON=1
                     EPSILON_DECAY=0.99996
                     # EPSILON_DECAY=1
-                    EPSILON_MIN=0.00
+                    EPSILON_MIN=0.20
                     
                     # Creat agent and start learning to play
                     agent = QAgent(NUM_GAMES, ALPHA, DISCOUNT, EPSILON, EPSILON_DECAY, EPSILON_MIN) 
@@ -640,7 +761,39 @@ while True:
                     
                     print("Q Agent Learned")
                     
-                    # print("Policy number of states".format(len(policy.keys())))
+                    # Print Score running average score per game
+                    plt.figure(figsize=(12,7))
+                    plt.title('Average Score per Game Plot (Q-Learning)')
+                    plt.xlabel('Game Number')
+                    plt.ylabel('Running Average Score')
+                    plt.plot(score_performance)
+                    plt.show()
+                  
+                if event.key == pygame.locals.K_d:
+                    print('Start Double Q-Learning')
+                    # NUM_GAMES = 125000
+                    NUM_GAMES = 1
+                    ALPHA=0.5
+                    DISCOUNT=0.9
+                    EPSILON=1
+                    EPSILON_DECAY=0.99996
+                    # EPSILON_DECAY=1
+                    EPSILON_MIN=0.20
+                    
+                    # Creat agent and start learning to play
+                    agent = DQAgent(NUM_GAMES, ALPHA, DISCOUNT, EPSILON, EPSILON_DECAY, EPSILON_MIN) 
+                    policy, score_performance = agent.learn(game)
+                    
+                    print("Double Q Agent Learned")
+                    
+                    # Print Score running average score per game
+                    plt.figure(figsize=(12,7))
+                    plt.title('Average Score per Game Plot (Double Q-Learning)')
+                    plt.xlabel('Game Number')
+                    plt.ylabel('Running Average Score')
+                    plt.plot(score_performance)
+                    plt.show()
+                    print("Policy number of states".format(len(policy.keys())))
                                 
     # window.display(score, [new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW], action_dict[action], game.environment, playing)
     window.display(score, [new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard], action_dict[action], game.environment, playing)
@@ -654,7 +807,7 @@ while True:
     ## End Event Handler            
     
     
-#%% Plot 
+#%% Plot Performances
 
 
 plt.title('Score Plot')
@@ -662,3 +815,51 @@ plt.xlabel('Iteration Number')
 plt.ylabel('Average Score')
 plt.plot(score_performance[99900:100000])
 plt.show()
+
+
+
+
+
+#%%
+
+# action_Q_values = np.ndarray((len(policy.items()),4))
+
+
+# # for i in range(3):
+# #     test3 = test3 + (1/(itercount+1)) * [test[i] - test3]
+# #     print(test3)
+
+# itercount=0
+# for k, v in policy.items():
+#     action_Q_values[itercount] = v
+#     itercount+=1
+
+# average = np.average(action_Q_values, axis=0)
+
+# print(average)
+
+
+
+
+# d1 = {1 : np.array([1,1,1,1])}
+# d2 = {1 : np.array([1,1,1,1])}
+
+
+# d3 = np.add((d1.get(1, False) or np.zeros((4,))), (d2.get(1, False) or np.zeros((4,))))
+# variable_name = my_dict.get('keyname', False) or 'something else'
+# print(d1.get(1, False) or np.array([0,0,0,0]))
+
+# print(np.where(np.array([0,0,0,0])))
+
+
+
+# allkey = functools.reduce(lambda x, y: x.union(y.keys()), [d1,d2], set())
+
+# for s in allkey:
+#     print(s)
+# print(allkey)
+# allkey = d1.keys() | d2.keys()
+
+import numpy as np
+print(np.add([0,0,0,0],[1,1,1,1]))
+
