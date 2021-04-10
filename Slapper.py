@@ -533,7 +533,7 @@ class DQAgent():
             #Exploit (With Random Tiebreaker)
 
             # Add the Q values for both q table to make a decision
-            Q_values = np.add((Q1_table.get(state, False) or np.zeros((4,))), (Q2_table.get(state, False) or np.zeros((4,))))
+            Q_values = np.add((Q1_table.get(state, False) or [0,0,0,0]), (Q2_table.get(state, False) or [0,0,0,0]))
             movement_ind = np.random.choice(np.argwhere(Q_values == np.amax(Q_values)).flatten().tolist())
         
         return movement_ind
@@ -560,7 +560,7 @@ class DQAgent():
                 # print('Current State is : ' + str(state))
                                     
                 # Check if state has occured before
-                state_action_Q = np.zeros((4,))
+                state_action_Q = [0,0,0,0]
                 if (state in trial_Q1_table.keys()) or (state in trial_Q2_table.keys()):
                     # Choose Move according to epsilon-greedy method
                     action = self.choose_action(state, trial_Q1_table, trial_Q2_table, current_epsilon)                       
@@ -584,28 +584,31 @@ class DQAgent():
 
                 # print('new_state ')
                 # print(new_state)
+                # print(score)      
                 
                 # Do Double Q-Learning (Get Current Reward and Expected Reward of new state and update ONE q table randomly)
                 # Update Q1 Table (using Q2 new_state state-action values)
                 if random.random() < .5:        
-                    print(state)
-                    print(trial_Q1_table.get(state, False) or np.zeros((4,)))
-                    new_state_Q1_values = (trial_Q1_table.get(state, False) or np.zeros((4,)))
+                    # print(state)
+                    # print(trial_Q1_table.get(state, False) or [0,0,0,0])
+                    # print(trial_Q1_table.get(state, False))
+                    new_state_Q1_values = trial_Q1_table.get(new_state, False) or [0,0,0,0]
                     best_action_ind_new_state = np.random.choice(np.argwhere(new_state_Q1_values == np.amax(new_state_Q1_values)).flatten().tolist())
                     
-                    trial_Q1_table[state][action] = (trial_Q1_table.get(state, False) or np.zeros((4,)))[action]
-                    + self.learn_rate * (score + self.discount(trial_Q2_table.get(new_state, False) or np.zeros((4,))[best_action_ind_new_state]) - trial_Q1_table[state][action])
-                                
+                    # trial_Q1_table[state][action] = (trial_Q1_table.get(state, False) or [0,0,0,0])[action]
+                    trial_Q1_table[state][action] = trial_Q1_table[state][action] + self.learn_rate * (score + self.discount*((trial_Q2_table.get(new_state, False) or [0,0,0,0])[best_action_ind_new_state]) - trial_Q1_table[state][action])
+                    
                 # Update Q2 Table (using Q1 new_state state-action values)
                 else:
-                    print(state)
-                    print(trial_Q2_table.get(state, False) or np.zeros((4,)))
-                    new_state_Q2_values = (trial_Q2_table.get(state, False) or np.zeros((4,)))
+                    # print(state)
+                    # print(trial_Q2_table.get(state, False) or [0,0,0,0])
+                    # print(trial_Q1_table.get(state, False))
+                    new_state_Q2_values = trial_Q2_table.get(new_state, False) or [0,0,0,0]
                     best_action_ind_new_state = np.random.choice(np.argwhere(new_state_Q2_values == np.amax(new_state_Q2_values)).flatten().tolist())
                     
-                    trial_Q2_table[state][action] = (trial_Q2_table.get(state, False) or np.zeros((4,)))[action]
-                    + self.learn_rate * (score + self.discount(trial_Q1_table.get(new_state, False) or np.zeros((4,))[best_action_ind_new_state]) - trial_Q2_table[state][action])
-                
+                    # trial_Q2_table[state][action] = (trial_Q2_table.get(state, False) or [0,0,0,0])[action]
+                    trial_Q2_table[state][action] = trial_Q2_table[state][action] + self.learn_rate * (score + self.discount*((trial_Q1_table.get(new_state, False) or [0,0,0,0])[best_action_ind_new_state]) - trial_Q2_table[state][action])
+
                 # print(game.environment)
             
                 # num_moves+=1
@@ -630,7 +633,7 @@ class DQAgent():
             score_running_average = score_running_average + 1/(game_index+1) * (score-score_running_average)
             score_performance[game_index] = score_running_average
             
-            print('Game {0} has Score {1} with epsilon {2}'.format(game_index, score, current_epsilon))
+            # print('Game {0} has Score {1} with epsilon {2}'.format(game_index, score, current_epsilon))
         
             # Reduce epsilon (if over the min amount)
             if current_epsilon > self.epsilon_min:
@@ -648,10 +651,12 @@ class DQAgent():
         
         # Consolidate both Q1 and Q2 tables into one master table        
         consolidated_Q_policy = {}
-        all_keys = functools.reduce(lambda x, y: x.union(y.keys()), [d1,d2], set())
-        for key in all_keys():
-            consolidated_Q_policy[key] = np.add((trial_Q1_table.get(key, False) or np.zeros((4,))), (trial_Q2_table.get(key, False) or np.zeros((4,))))   
+        all_keys = functools.reduce(lambda x, y: x.union(y.keys()), [trial_Q1_table,trial_Q2_table], set())
+        for key in all_keys:
+            consolidated_Q_policy[key] = np.add((trial_Q1_table.get(key, False) or [0,0,0,0]), (trial_Q2_table.get(key, False) or [0,0,0,0]))   
 
+        # print(trial_Q1_table)
+        # print(trial_Q2_table)
         return consolidated_Q_policy, score_performance
 
     def choose_action_per_policy(self, policy, new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard):
@@ -771,8 +776,8 @@ while True:
                   
                 if event.key == pygame.locals.K_d:
                     print('Start Double Q-Learning')
-                    # NUM_GAMES = 125000
-                    NUM_GAMES = 1
+                    NUM_GAMES = 125000
+                    # NUM_GAMES = 1000
                     ALPHA=0.5
                     DISCOUNT=0.9
                     EPSILON=1
@@ -793,9 +798,8 @@ while True:
                     plt.ylabel('Running Average Score')
                     plt.plot(score_performance)
                     plt.show()
-                    print("Policy number of states".format(len(policy.keys())))
+
                                 
-    # window.display(score, [new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW], action_dict[action], game.environment, playing)
     window.display(score, [new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard], action_dict[action], game.environment, playing)
 
     
@@ -807,20 +811,13 @@ while True:
     ## End Event Handler            
     
     
-#%% Plot Performances
-
-
-plt.title('Score Plot')
-plt.xlabel('Iteration Number')
-plt.ylabel('Average Score')
-plt.plot(score_performance[99900:100000])
-plt.show()
 
 
 
+#%% Testing
 
+import numpy as np
 
-#%%
 
 # action_Q_values = np.ndarray((len(policy.items()),4))
 
@@ -841,14 +838,21 @@ plt.show()
 
 
 
-# d1 = {1 : np.array([1,1,1,1])}
-# d2 = {1 : np.array([1,1,1,1])}
+d1 = {1 : [1,1,1,1]}
+d2 = {1 : [1,1,1,1]}
 
 
-# d3 = np.add((d1.get(1, False) or np.zeros((4,))), (d2.get(1, False) or np.zeros((4,))))
+
+
+# d3 = np.add((d1.get(1, False) or [0,0,0,0]), (d2.get(1, False) or [0,0,0,0]))
 # variable_name = my_dict.get('keyname', False) or 'something else'
 # print(d1.get(1, False) or np.array([0,0,0,0]))
 
+
+test = d1.get(1, False) or [0,0,0,0]
+
+print(type(d1))
+print(type(test))
 # print(np.where(np.array([0,0,0,0])))
 
 
@@ -860,6 +864,5 @@ plt.show()
 # print(allkey)
 # allkey = d1.keys() | d2.keys()
 
-import numpy as np
-print(np.add([0,0,0,0],[1,1,1,1]))
+# print(np.add([0,0,0,0],[1,1,1,1]))
 
