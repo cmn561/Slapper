@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 
 import random
 
+from time import sleep
+
 #%% Class Definitions
 
 # Class for the display window
@@ -59,34 +61,30 @@ class Window():
         score_text = self.font.render("Score : " + str(score), 1, (0, 0, 0))
         state_text1 = self.font.render("Y Pos : " + str(state[0]), 1, (0, 0, 0))
         state_text2 = self.font.render("X Pos : " + str(state[1]), 1, (0, 0, 0))
-        state_text_N = self.font.render(str(state[2]), 1, (0, 0, 0))
-        state_text_E = self.font.render(str(state[3]), 1, (0, 0, 0))
-        state_text_S = self.font.render(str(state[4]), 1, (0, 0, 0))
-        state_text_W = self.font.render(str(state[5]), 1, (0, 0, 0))
-        state_text_NE = self.font.render(str(state[6]), 1, (0, 0, 0))
-        state_text_SE = self.font.render(str(state[7]), 1, (0, 0, 0))
-        state_text_SW = self.font.render(str(state[8]), 1, (0, 0, 0))
-        state_text_NW = self.font.render(str(state[9]), 1, (0, 0, 0))
+        state_text_NE = self.font.render(str(state[2]), 1, (0, 0, 0))
+        state_text_SE = self.font.render(str(state[3]), 1, (0, 0, 0))
+        state_text_SW = self.font.render(str(state[4]), 1, (0, 0, 0))
+        state_text_NW = self.font.render(str(state[5]), 1, (0, 0, 0))
         action_text = self.font.render("Action : " + str(action), 1, (0, 0, 0))     
         instructions_text = self.font.render("Press [key] to : " , 1, (0, 0, 0))
-        controls_text = self.font.render("(P - Play, Q - Learn (Q), D - Learn (DoubleQ))" , 1, (0, 0, 0))
-        controls2_text = self.font.render("(S - Sim Agent, ESC - Stop Game)" , 1, (0, 0, 0))
+        controls_text = self.font.render("[P] - Play,  [ESC] - Stop Game" , 1, (0, 0, 0))
+        controls2_text = self.font.render("[Q] - Train Q Agent" , 1, (0, 0, 0))
+        controls3_text = self.font.render("[D] - Train Double-Q Agent" , 1, (0, 0, 0))
+        controls4_text = self.font.render("[S] - Sim Policy Move" , 1, (0, 0, 0))
         
         self.background.blit(score_text, (620, 20))
         self.background.blit(state_text1, (620, 100))
         self.background.blit(state_text2, (620, 130))        
-        self.background.blit(state_text_N, (660, 160))
-        self.background.blit(state_text_E, (700, 190))
-        self.background.blit(state_text_S, (660, 220))
-        self.background.blit(state_text_W, (620, 190))
         self.background.blit(state_text_NE, (700, 160))
         self.background.blit(state_text_SE, (700, 220))
         self.background.blit(state_text_SW, (620, 220))
         self.background.blit(state_text_NW, (620, 160))      
-        self.background.blit(action_text, (620, 400))
-        self.background.blit(instructions_text, (620, 470))
-        self.background.blit(controls_text, (620, 500))
-        self.background.blit(controls2_text, (620, 530))
+        self.background.blit(action_text, (620, 300))
+        self.background.blit(instructions_text, (620, 370))
+        self.background.blit(controls_text, (620, 400))
+        self.background.blit(controls2_text, (620, 430))
+        self.background.blit(controls3_text, (620, 460))
+        self.background.blit(controls4_text, (620, 490))
 
         # Display Game Objects if playing
         if playing:
@@ -126,7 +124,7 @@ class Game():
 
         self.current_y = start_y        
         self.current_x = start_x
-        self.is_running=False
+        self.is_running = False
         
         self.environment = [[1,1,1,1,1,1],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
      
@@ -137,7 +135,8 @@ class Game():
         
         self.environment = [[1,1,1,1,1,1],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
         
-        return self.start_y, self.start_x, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        # return self.start_y, self.start_x, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        return self.start_y, self.start_x, 0, 0, 0, 0, 0, 0
         
     def initialize_agent_grid(self):
         self.current_y = self.start_y
@@ -145,7 +144,8 @@ class Game():
         
         self.environment = [[1,1,1,1,1,1],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
         
-        return self.start_y, self.start_x, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        # return self.start_y, self.start_x, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        return self.start_y, self.start_x, 0, 0, 0, 0, 0, 0
     
     def start_learning(self):
         self.current_y = self.start_y
@@ -153,7 +153,7 @@ class Game():
         
         self.environment = [[1,1,1,1,1,1],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
         
-        return self.start_y, self.start_x, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        return self.start_y, self.start_x, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     
     def start_game(self):
         self.is_running = True
@@ -166,7 +166,7 @@ class Game():
         return False
     
     def sim_game(self, agent):
-        return True 
+        sleep(0.1) 
     
     def is_game_running(self):
         return self.is_running
@@ -247,19 +247,18 @@ class Game():
 
         
         # Built Current Hazard State        
-        h_N = 1 if (self.environment[self.game_floor(self.current_y-1)][self.current_x] == -1) else 0
+        # h_N = 1 if (self.environment[self.game_floor(self.current_y-1)][self.current_x] == -1) else 0
         h_NE = 1 if (self.game_ceiling(self.current_x+1) != self.current_x and self.environment[self.game_floor(self.current_y-1)][self.game_ceiling(self.current_x+1)] == -1) else 0
         
-        h_E = 1 if (self.environment[self.current_y][self.game_ceiling(self.current_x+1)] == -1) else 0
+        # h_E = 1 if (self.environment[self.current_y][self.game_ceiling(self.current_x+1)] == -1) else 0
         h_SE = 1 if (self.game_ceiling(self.current_x+1) != self.current_x and self.environment[self.game_ceiling(self.current_y+1)][self.game_ceiling(self.current_x+1)] == -1) else 0
         
-        h_S = 1 if (self.environment[self.game_ceiling(self.current_y+1)][self.current_x] == -1) else 0
+        # h_S = 1 if (self.environment[self.game_ceiling(self.current_y+1)][self.current_x] == -1) else 0
         h_SW = 1 if (self.game_floor(self.current_x-1) != self.current_x and self.environment[self.game_ceiling(self.current_y+1)][self.game_floor(self.current_x-1)] == -1) else 0
         
-        h_W = 1 if (self.environment[self.current_y][self.game_floor(self.current_x-1)] == -1) else 0
+        # h_W = 1 if (self.environment[self.current_y][self.game_floor(self.current_x-1)] == -1) else 0
         h_NW = 1 if (self.game_floor(self.current_x-1) != self.current_x and self.environment[self.game_floor(self.current_y-1)][self.game_floor(self.current_x-1)] == -1) else 0
-        
-        
+               
         # Check If Win
         done = False
         score=0
@@ -269,10 +268,14 @@ class Game():
             
         # Check If Lose
         if (self.environment[self.current_y][self.current_x] == -1):
-            score = -15
+            # score = -15
+            score = - self.reward
             done = True
         
-        return self.current_y, self.current_x, h_N, h_E, h_S, h_W, h_NE, h_SE, h_SW, h_NW, score, done
+        h_onHazard = 1 if done==True else 0
+        
+        # return self.current_y, self.current_x, h_N, h_E, h_S, h_W, h_NE, h_SE, h_SW, h_NW, score, done
+        return self.current_y, self.current_x, h_NE, h_SE, h_SW, h_NW, h_onHazard, score, done
     
     
     # For simming an agent's move action
@@ -335,16 +338,16 @@ class Game():
 
         
         # Built Current Hazard State        
-        h_N = 1 if (self.environment[self.game_floor(self.current_y-1)][self.current_x] == -1) else 0
+        # h_N = 1 if (self.environment[self.game_floor(self.current_y-1)][self.current_x] == -1) else 0
         h_NE = 1 if (self.game_ceiling(self.current_x+1) != self.current_x and self.environment[self.game_floor(self.current_y-1)][self.game_ceiling(self.current_x+1)] == -1) else 0
         
-        h_E = 1 if (self.environment[self.current_y][self.game_ceiling(self.current_x+1)] == -1) else 0
+        # h_E = 1 if (self.environment[self.current_y][self.game_ceiling(self.current_x+1)] == -1) else 0
         h_SE = 1 if (self.game_ceiling(self.current_x+1) != self.current_x and self.environment[self.game_ceiling(self.current_y+1)][self.game_ceiling(self.current_x+1)] == -1) else 0
         
-        h_S = 1 if (self.environment[self.game_ceiling(self.current_y+1)][self.current_x] == -1) else 0
+        # h_S = 1 if (self.environment[self.game_ceiling(self.current_y+1)][self.current_x] == -1) else 0
         h_SW = 1 if (self.game_floor(self.current_x-1) != self.current_x and self.environment[self.game_ceiling(self.current_y+1)][self.game_floor(self.current_x-1)] == -1) else 0
         
-        h_W = 1 if (self.environment[self.current_y][self.game_floor(self.current_x-1)] == -1) else 0
+        # h_W = 1 if (self.environment[self.current_y][self.game_floor(self.current_x-1)] == -1) else 0
         h_NW = 1 if (self.game_floor(self.current_x-1) != self.current_x and self.environment[self.game_floor(self.current_y-1)][self.game_floor(self.current_x-1)] == -1) else 0
         
         
@@ -357,15 +360,33 @@ class Game():
             
         # Check If Lose
         if (self.environment[self.current_y][self.current_x] == -1):
-            score = -15
+            # score = -15
+            score = - self.reward
             done = True
         
-        return self.current_y, self.current_x, h_N, h_E, h_S, h_W, h_NE, h_SE, h_SW, h_NW, score, done
-     
+        # return self.current_y, self.current_x, h_N, h_E, h_S, h_W, h_NE, h_SE, h_SW, h_NW, score, done
+        h_onHazard = 1 if done==True else 0
+        
+        # return self.current_y, self.current_x, h_N, h_E, h_S, h_W, h_NE, h_SE, h_SW, h_NW, score, done
+        return self.current_y, self.current_x, h_NE, h_SE, h_SW, h_NW, h_onHazard, score, done
+
+# The class for the default Reinforcement Learning Agent (i.e completely random choices). Just for demonstration.
+class DefaultAgent():           
+    def choose_action_per_policy(self, policy, new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard):
+        state = (new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard)
+        
+        # if state in policy dictionary
+        if (state in policy.keys()):
+            return np.argmax(policy[state])     
+            print('Chose Best Move')
+        # if state not in policy dictionary
+        else: 
+            return random.randint(0,3)
+            print('Chose Random Move')
+        
 # The class for the Reinforcement Learning Q Agent
 class QAgent():
-    def __init__(self, num_trials, num_games, learn_rate, discount, epsilon, epsilon_decay, epsilon_min):
-        self.num_trials = num_trials
+    def __init__(self, num_games, learn_rate, discount, epsilon, epsilon_decay, epsilon_min):
         self.num_games = num_games
         self.learn_rate = learn_rate
         self.discount = discount
@@ -395,81 +416,89 @@ class QAgent():
         
         trial_Q_table = {}
         trial_N_table = {}
+        score_performance = np.empty((self.num_games,))      
+        current_epsilon = self.epsilon
         
-        score_performance = np.ndarray((self.num_trials,self.num_games))       
-        
-        for trial_index in range(self.num_trials):
-            print('------------------- Trial ' + str(trial_index) + " ----------------")
+        for game_index in range(self.num_games):
+            # new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score = game.initialize_agent_grid()
+            new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score = game.initialize_agent_grid()
+                            
+            # num_moves=0
+            done=False
+            action = 0
+            while (done != True):
+            # while (num_moves < 4):
+                # Given state, use epsilon-greedy method to choose an action
+                # state = (new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW)
+                state = (new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard)
+                # print('Current State is : ' + str(state))
+                                    
+                # Check if state has occured before
+                state_action_Q = np.zeros((4,))
+                if state in trial_Q_table.keys():
+                    # Choose Random Move if no record of this state before
+                    action = self.choose_action(state, trial_Q_table, current_epsilon)                       
+                    state_action_Q = trial_Q_table[state]
+                    trial_N_table[state] += 1
+                else: 
+                    # action = self.choose_action(state, trial_Q_table, current_epsilon)
+                    action = random.randint(0, 3)
+                    
+                    trial_Q_table[state] = state_action_Q
+                    trial_N_table[state] = 1
+                                            
+                # print('Action is : ' + str(action))
+                # print('current_state ')
+                # print(state)                        
+                    
+                # new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score, done = game.sim_move(action)
+                # new_state = (new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW)
+                new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score, done = game.sim_move(action)
+                new_state = (new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard)
 
-            trial_Q_table = {}
-            trial_N_table = {}
-
-            print(trial_Q_table)
-            
-            current_epsilon = self.epsilon
-            
-            for game_index in range(self.num_games):
-                new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score = game.initialize_agent_grid()
-                                
-                # num_moves=0
-                done=False
-                while (done != True):
-                # while (num_moves < 4):
-                    # Given state, use epsilon-greedy method to choose an action
-                    state = (new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW)
-                    action = 0
-                    # print('Current State is : ' + str(state))
-                    
-                    # Check if state has occured before
-                    state_action_Q = np.zeros((4,))
-                    if state in trial_Q_table.keys():
-                        # Choose Random Move if no record of this state before
-                        action = self.choose_action(state, trial_Q_table, 1.0)                       
-                        state_action_Q = trial_Q_table[state]
-                        trial_N_table[state] += 1
-                    else: 
-                        # action = self.choose_action(state, trial_Q_table, current_epsilon)
-                        action = random.randint(0, 3)
-                        trial_Q_table[state] = state_action_Q
-                        trial_N_table[state] = 1
-                                       
-                    # print('Action is : ' + str(action))
-                    # print('current_state ')
-                    # print(state)
-                        
-                        
-                    new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score, done = game.sim_move(action)
-                    new_state = (new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW)
-                    # new_state = (new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW)
-                    # print('new_state ')
-                    # print(new_state)
-                    
-                    # Do Q-Learning (Get Current Reward and Expected Reward of new state)
-                    new_state_action_Q = np.zeros((4,))
-                    if new_state in trial_Q_table.keys():
-                        new_state_action_Q = trial_Q_table[new_state]
-                    
-                    Q_retain = (1-self.learn_rate) * trial_Q_table[state][action]
-                    Q_learn = self.learn_rate * (score + DISCOUNT * max(new_state_action_Q))
-                    
-                    trial_Q_table[state][action] = Q_retain + Q_learn
-                    # V[current_y][current_x] = max(trial_Q_table[current_y][current_x])
-                    
-                    # print(game.environment)
+                # print('new_state ')
+                # print(new_state)
                 
-                    # num_moves+=1
+                # Do Q-Learning (Get Current Reward and Expected Reward of new state)
+                new_state_action_Q = np.zeros((4,))
+                if new_state in trial_Q_table.keys():
+                    new_state_action_Q = trial_Q_table[new_state]
                 
-                score_performance[trial_index][game_index] = score
-                # print('Game {0} has Score {1} with epsilon {2}'.format(game_index, score, current_epsilon))
-            
-                # Reduce epsilon (if over the min amount)
-                if current_epsilon > self.epsilon_min:
-                    current_epsilon = current_epsilon * self.epsilon_decay
-            
-            ## end game          
+                Q_retain = (1-self.learn_rate) * trial_Q_table[state][action]
+                Q_learn = self.learn_rate * (score + DISCOUNT * max(new_state_action_Q))
                 
-        ## end trial
+                trial_Q_table[state][action] = Q_retain + Q_learn
+                # V[current_y][current_x] = max(trial_Q_table[current_y][current_x])
+                
+                # print(game.environment)
+            
+                # num_moves+=1
+                                    
+                # Testing
+                # if (state == (3,3,1,0,0,0,0) and action == 0):
+                #     print('Cur State : {0}'.format(state))
+                #     # print('Action is {0}'.format(action))
+                #     print('Q {0}'.format(trial_Q_table[(3,3,1,0,0,0,0)]))
+                #     print('New State : {0}'.format(new_state))
+                #     print('Q {0}'.format(new_state_action_Q))
+                    
+                #     # print('Done is {0}'.format(done))
+                #     # print('Score is {0}'.format(score))
+                    
+                #     print(Q_retain)
+                #     print(Q_learn)
+                    
+                #     print('-----------------------------')
+                
+            score_performance[game_index] = score
+            # print('Game {0} has Score {1} with epsilon {2}'.format(game_index, score, current_epsilon))
         
+            # Reduce epsilon (if over the min amount)
+            if current_epsilon > self.epsilon_min:
+                current_epsilon = current_epsilon * self.epsilon_decay
+        
+        ## end game          
+                    
         # Testing
         # print('=================================Q-Table Values==============================')
         # for key in trial_Q_table.keys():
@@ -480,8 +509,20 @@ class QAgent():
         
         return trial_Q_table, score_performance
         # return policy
-    
- 
+
+    def choose_action_per_policy(self, policy, new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard):
+        state = (new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard)
+        
+        # if state in policy dictionary
+        if (state in policy.keys()):
+            return np.argmax(policy[state])     
+            print('Chose Best Move')
+        # if state not in policy dictionary
+        else: 
+            return random.randint(0,3)
+            print('Chose Random Move')
+
+
 # The class for the Reinforcement Learning Double Q Agent
 class DQAgent():
     def __init__(self, grid_y, grid_x, start_y, start_x, reward):
@@ -510,7 +551,7 @@ width, height = 1000, 600
 background_color = 250, 250, 250
 
 # Initialize Window, Game, Agent classes
-game = Game(6, 6, 5, 5, 50, [(0,0),(0,1),(0,2),(0,3),(0,4),(0,5)])
+game = Game(6, 6, 5, 5, 10, [(0,0),(0,1),(0,2),(0,3),(0,4),(0,5)])
 
 window = Window(width, height, background_color)
 window.display(0, [0,0,0,0,0,0,0,0,0,0], '', game.environment, 0)
@@ -522,9 +563,12 @@ score=0
 playing = False
 game_done = False
 
+agent = DefaultAgent()
 policy={}
 
-new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score = game.initialize_player_grid()
+# new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score = game.initialize_player_grid()
+new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score = game.initialize_player_grid()
+
 
 # Event loop
 while True:
@@ -544,53 +588,63 @@ while True:
                 if event.key == pygame.locals.K_UP:
                     # print('Move Up')
                     action=0
-                    new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score, game_done = game.update(action)
+                    # new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score, game_done = game.update(action)
+                    new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score, game_done = game.update(action)
                     
                 if event.key == pygame.locals.K_RIGHT:
                     # print('Move Right')
                     action=1
-                    new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score, game_done = game.update(action)
-                    
+                    # new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score, game_done = game.update(action)
+                    new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score, game_done = game.update(action)
+   
                 if event.key == pygame.locals.K_DOWN:
                     # print('Move Down')
                     action=2
-                    new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score, game_done = game.update(action)
-                    
+                    # new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score, game_done = game.update(action)
+                    new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score, game_done = game.update(action)
+
                 if event.key == pygame.locals.K_LEFT:
                     # print('Move Left')
                     action=3
-                    new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score, game_done = game.update(action)
+                    # new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score, game_done = game.update(action)
+                    new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score, game_done = game.update(action)
                 
+                if event.key == pygame.locals.K_s:    
+                    # if (bool(policy) == True):
+                    print('Sim an agent move with agent : {0}'.format(type(agent)))
+                    action = agent.choose_action_per_policy(policy, new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard)
+                    new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score, game_done = game.update(action)     
+                    # else:
+                    #     print('No Policy to Simulate Play')
+
             else:
                 if event.key == pygame.locals.K_p:
                     print('Start Player Game')
                     playing, game_done = game.start_game()
-                    new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score = game.initialize_player_grid()
+                    # new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score = game.initialize_player_grid()
+                    new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score = game.initialize_player_grid()
+
                 if event.key == pygame.locals.K_q:
                     print('Start Q-Learning')
-                    NUM_TRIALS = 1
-                    NUM_GAMES = 200000
-                    ALPHA=0.1
+                    NUM_GAMES = 100000
+                    ALPHA=0.5
                     DISCOUNT=0.9
                     EPSILON=1
-                    # EPSILON_DECAY=0.99997
-                    EPSILON_DECAY=1
-                    EPSILON_MIN=0.15
+                    EPSILON_DECAY=0.99996
+                    # EPSILON_DECAY=1
+                    EPSILON_MIN=0.00
                     
                     # Creat agent and start learning to play
-                    agent = QAgent(NUM_TRIALS, NUM_GAMES, ALPHA, DISCOUNT, EPSILON, EPSILON_DECAY, EPSILON_MIN) 
+                    agent = QAgent(NUM_GAMES, ALPHA, DISCOUNT, EPSILON, EPSILON_DECAY, EPSILON_MIN) 
                     policy, score_performance = agent.learn(game)
                     
                     print("Q Agent Learned")
                     
                     # print("Policy number of states".format(len(policy.keys())))
-                        
-                if event.key == pygame.locals.K_s:
-                    print('Sim the Learned Agent')
-                    game.initialize_agent_grid()
-                    game.sim_game(agent)                   
-                    
-    window.display(score, [new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW], action_dict[action], game.environment, playing)
+                                
+    # window.display(score, [new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW], action_dict[action], game.environment, playing)
+    window.display(score, [new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard], action_dict[action], game.environment, playing)
+
     
     # Check if game finished
     if (playing and game_done):
@@ -602,10 +656,9 @@ while True:
     
 #%% Plot 
 
-averages=np.average(score_performance, axis=0)
 
 plt.title('Score Plot')
 plt.xlabel('Iteration Number')
 plt.ylabel('Average Score')
-plt.plot(averages)
+plt.plot(score_performance[99900:100000])
 plt.show()
