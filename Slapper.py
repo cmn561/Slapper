@@ -791,20 +791,21 @@ class SARSAAgent():
                 
                 # Do SARSA Learning (Get Current Reward and Expected Reward of new state)
                 # Q_retain = (1-self.learn_rate) * state_action_Q[action]
-                Q_learn = self.learn_rate * (score + self.discount * new_state_action_Q[new_action] - state_action_Q[action])
+                                               
+                # Get expected value of new state
+                new_state_best_action = np.random.choice(np.argwhere(new_state_action_Q == np.amax(new_state_action_Q)).flatten().tolist())
+                probabilities = np.array([(1-current_epsilon)/3,(1-current_epsilon)/3,(1-current_epsilon)/3,(1-current_epsilon)/3])
+                probabilities[new_state_best_action] = current_epsilon                
+                new_state_expected_value = np.sum(np.multiply(new_state_action_Q, probabilities))
+                # Q_learn = self.learn_rate * (score + self.discount * new_state_action_Q[new_action] - state_action_Q[action])
+                Q_learn = self.learn_rate * (score + self.discount * new_state_expected_value - state_action_Q[action])
                 trial_Q_table[state][action] = state_action_Q[action] + Q_learn
                 
-                # new_state_action_Q = np.zeros((4,))
-                # if new_state in trial_Q_table.keys():
-                #     new_state_action_Q = trial_Q_table[new_state]                n
-                # trial_Q_table[state][action] = Q_retain + Q_learn
-                # V[current_y][current_x] = max(trial_Q_table[current_y][current_x])
-
                 # On-Policy End of Update (update the state and action to new values)
                 state = new_state
                 action = new_action
                 
-                
+                # Check if exceeded move count
                 num_moves+=1
                 if (num_moves>=100):
                     score = -10
@@ -989,7 +990,7 @@ while True:
                 if event.key == pygame.locals.K_s:
                     print('Start SARSA Learning')
                     NUM_GAMES = 125000
-                    # NUM_GAMES = 100000
+                    # NUM_GAMES = 2
                     ALPHA=0.4
                     DISCOUNT=0.9
                     EPSILON=1
@@ -1076,7 +1077,7 @@ while True:
 
 Q = [10,-5,0,0]
 
-current_epsilon = 0.5
+current_epsilon = 0.4
 probabilities = np.array([(1-current_epsilon)/3,(1-current_epsilon)/3,(1-current_epsilon)/3,(1-current_epsilon)/3])
 
 probabilities[np.argmax(Q)] = current_epsilon
