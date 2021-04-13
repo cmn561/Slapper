@@ -1,6 +1,12 @@
 # Slapper
+
 Project Inspired by Melanie Mitchell's "Artificial Intelligence : A Guide To Thinking Humans"
 This project is my attempt at training an agent to learn how to play a simple game based on Reinforcement Learning principles.
+
+
+Video Overview
+-----------------------------------------------
+https://www.youtube.com/watch?v=1YzOaIBsIQo
 
 
 Program Requirements
