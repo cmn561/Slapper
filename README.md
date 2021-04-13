@@ -1,9 +1,23 @@
 # Slapper
 Project Inspired by Melanie Mitchell's "Artificial Intelligence : A Guide To Thinking Humans"
+This project is my attempt at training an agent to learn how to play a simple game based on Reinforcement Learning principles.
+
+
+Program Requirements
+-----------------------------------------------
+Python (I have version 3.8.5; to install, go to https://www.python.org/downloads/)
+
+Python Dependencies
+-----------------------------------------------
+numpy				(run command "pip install numpy" in python terminal)
+pygame 				(run command "pip install pygame" in python terminal)
+matplotlib.pyplot 	(run command "pip install matplotlib" in python terminal)
+
 
 Overview/Inspiration:
 -----------------------------------------------------------------------------
-There are three different methods of machine learning: unsupervised, supervised, and reinforcement learning.
+-----------------------------------------------------------------------------
+There are three main methods of machine learning: unsupervised, supervised, and reinforcement learning.
 
 Unsupervised learning is any kind of learning where the algorithm must generate its results with no label data to train the network on. 
 This type of learning usually focuses on finding patterns and relationships between supplied datapoints.
@@ -20,19 +34,22 @@ Since then, AlphaGo has been expanded to include other games in its belt of expe
 Using reinforcement learning, the people of DeepMind have created a system that eerily resembles how people normally learn to play video games; i.e. through hours of practice and trial and error. 
 
 
-My project (while not nearly as impressive) is my attempt to create a simple deep learning game that can learn to play the game of "Slapper" (definitely not a clone/ripoff of Frogger).
+This project (while not nearly as impressive) is my attempt to create a simple deep learning game that can learn to play the game of "Slapper" (definitely not inspired by the Frogger game series).
 
-	
 	
 Slapper Instructions:
 -----------------------------------------------------------------------------
-Slapper is a green square frog that wants to get across the road to that rectangular river. 
-However, there are red square cars in the way that we wants to avoid in order to not get squashed.
+Slapper is a green square frog that wants to get across the road to the long river that he calls home. 
+However, there are red hazards in the way that we wants to avoid in order to avoid getting squashed.
 
-The objective : guide Slapper to the river without touching a car.
-The possible actions that Slapper can take are "UP", "RIGHT", "DOWN", "LEFT". The environment is a 6x6 grid where the top row (goal) and bottom row (start) are free of obstacles.
-The four rows in between spawn cars that have a small chance to appear on the right side, and once spawned, make their way over to the right side one-block at a time.
+THE OBJECTIVE OF THE GAME IS TO GUIDE SLAPPER TO THE RIVER WITHOUT TOUCHING A CAR.
 
-Getting Slapper to the end results in 50 points and getting squashed results in -15 points. 
+The possible actions that Slapper can take are "UP", "RIGHT", "DOWN", "LEFT" (mapped to the UP, RIGHT, DOWN, LEFT arrow keys). 
+The environment is a 6x6 grid where the top row (the goal) and bottom row (start) are free of obstacles.
+The four rows in between spawn cars that have a small chance to appear on the right side, and once spawned, move to the left-side one block at a time. 
+The bottom most rows spawns the least amount of hazards and the topmost row before the goal spawns the most hazards.
 
+The only way to lose is to have Slapper occupy the same space as a hazard at any moment. This means he can take any action unimpeded and a check is made after every action event to see if Slapper is in a hazard spot.
+Getting Slapper to the end results in 10 points and getting squashed results in -10 points. 
 
+	
