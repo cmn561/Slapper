@@ -220,22 +220,22 @@ class Game():
             # Check for New Hazards for this lane
             if (i == 1):
                 rand = random.random()                        
-                if (rand < 0.4):
+                if (rand < 0.2):
                     self.environment[i][5] = -1
                     
             elif(i == 2):
                 rand = random.random()
-                if (rand < 0.3):
+                if (rand < 0.15):
                     self.environment[i][5] = -1  
                     
             elif(i == 3):
                 rand = random.random()
-                if (rand < 0.2):
+                if (rand < 0.1):
                     self.environment[i][5] = -1  
                     
             elif(i == 4):
                 rand = random.random()
-                if (rand < 0.1):
+                if (rand < 0.05):
                     self.environment[i][5] = -1                                              
 
         
@@ -308,25 +308,25 @@ class Game():
                         self.environment[i][j-1] = -1
                         self.environment[i][j] = 0
    
-            # Check for New Hazards for this lane
+            # # Check for New Hazards for this lane
             if (i == 1):
                 rand = random.random()                        
-                if (rand < 0.4):
+                if (rand < 0.2):
                     self.environment[i][5] = -1
                     
             elif(i == 2):
                 rand = random.random()
-                if (rand < 0.3):
+                if (rand < 0.15):
                     self.environment[i][5] = -1  
                     
             elif(i == 3):
                 rand = random.random()
-                if (rand < 0.2):
+                if (rand < 0.1):
                     self.environment[i][5] = -1  
                     
             elif(i == 4):
                 rand = random.random()
-                if (rand < 0.1):
+                if (rand < 0.05):
                     self.environment[i][5] = -1                                              
 
         
@@ -395,7 +395,7 @@ class QAgent():
         self.epsilon_decay = epsilon_decay
         self.epsilon_min = epsilon_min
         
-        self.agent_name = 'Random Agent'
+        self.agent_name = 'Q Agent'
 
     def get_agent_name(self):
         return self.agent_name
@@ -501,8 +501,26 @@ class QAgent():
             if current_epsilon > self.epsilon_min:
                 current_epsilon = current_epsilon * self.epsilon_decay
                 
-                      
         ## end learning
+
+        # Generate the average state-value table
+        grid_state_value = np.zeros((6,6))
+        grid_state_count = np.zeros((6,6))        
+        
+        for key in trial_Q_table.keys():
+            # print(key)
+            # print(trial_Q_table[key])
+            y = key[0:1]
+            x = key[1:2]
+            
+            max_value = np.max(trial_Q_table[key])
+            # print(max_value)
+            grid_state_count[y][x] += 1            
+            grid_state_value[y][x] = grid_state_value[y][x] + 1/(grid_state_count[y][x]) * (max_value-grid_state_value[y][x])
+            
+        # print(grid_state_count)
+        # print(grid_state_value)
+        
             
         # Testing
         # print('=================================Q-Table Values==============================')
@@ -512,7 +530,7 @@ class QAgent():
             
         # agent.Q_table = trial_Q_table
         
-        return trial_Q_table, score_performance
+        return trial_Q_table, grid_state_value, score_performance
         # return policy
 
     def choose_action_per_policy(self, policy, new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard):
@@ -660,7 +678,7 @@ class DQAgent():
                 current_epsilon = current_epsilon * self.epsilon_decay
                    
         ## end learning
-            
+                
         # Testing
         # print('=================================Q-Table Values==============================')
         # for key in trial_Q_table.keys():
@@ -673,11 +691,27 @@ class DQAgent():
         consolidated_Q_policy = {}
         all_keys = functools.reduce(lambda x, y: x.union(y.keys()), [trial_Q1_table,trial_Q2_table], set())
         for key in all_keys:
-            consolidated_Q_policy[key] = np.add((trial_Q1_table.get(key, False) or [0,0,0,0]), (trial_Q2_table.get(key, False) or [0,0,0,0]))   
+            consolidated_Q_policy[key] = np.add((trial_Q1_table.get(key, False) or [0,0,0,0]), (trial_Q2_table.get(key, False) or [0,0,0,0]))/2
+
+
+        # Generate the average state-value table
+        grid_state_value = np.zeros((6,6))
+        grid_state_count = np.zeros((6,6))        
+        
+        for key in consolidated_Q_policy.keys():
+            # print(key)
+            # print(trial_Q_table[key])
+            y = key[0:1]
+            x = key[1:2]
+            
+            max_value = np.max(consolidated_Q_policy[key])
+            # print(max_value)
+            grid_state_count[y][x] += 1            
+            grid_state_value[y][x] = grid_state_value[y][x] + 1/(grid_state_count[y][x]) * (max_value-grid_state_value[y][x])
 
         # print(trial_Q1_table)
         # print(trial_Q2_table)
-        return consolidated_Q_policy, score_performance
+        return consolidated_Q_policy, grid_state_value, score_performance
 
     def choose_action_per_policy(self, policy, new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard):
         state = (new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard)
@@ -781,12 +815,12 @@ class SARSAAgent():
                 # Q_retain = (1-self.learn_rate) * state_action_Q[action]
                                                
                 # Get expected value of new state
-                new_state_best_action = np.random.choice(np.argwhere(new_state_action_Q == np.amax(new_state_action_Q)).flatten().tolist())
-                probabilities = np.array([(1-current_epsilon)/3,(1-current_epsilon)/3,(1-current_epsilon)/3,(1-current_epsilon)/3])
-                probabilities[new_state_best_action] = current_epsilon                
-                new_state_expected_value = np.sum(np.multiply(new_state_action_Q, probabilities))
-                # Q_learn = self.learn_rate * (score + self.discount * new_state_action_Q[new_action] - state_action_Q[action])
-                Q_learn = self.learn_rate * (score + self.discount * new_state_expected_value - state_action_Q[action])
+                # new_state_best_action = np.random.choice(np.argwhere(new_state_action_Q == np.amax(new_state_action_Q)).flatten().tolist())
+                # probabilities = np.array([(1-current_epsilon)/3,(1-current_epsilon)/3,(1-current_epsilon)/3,(1-current_epsilon)/3])
+                # probabilities[new_state_best_action] = current_epsilon                
+                # new_state_expected_value = np.sum(np.multiply(new_state_action_Q, probabilities))
+                Q_learn = self.learn_rate * (score + self.discount * new_state_action_Q[new_action] - state_action_Q[action])
+                # Q_learn = self.learn_rate * (score + self.discount * new_state_expected_value - state_action_Q[action])
                 trial_Q_table[state][action] = state_action_Q[action] + Q_learn
                 
                 # On-Policy End of Update (update the state and action to new values)
@@ -830,6 +864,22 @@ class SARSAAgent():
                 
         ## end learning
             
+        
+        # Generate the average state-value table
+        grid_state_value = np.zeros((6,6))
+        grid_state_count = np.zeros((6,6))        
+        
+        for key in trial_Q_table.keys():
+            # print(key)
+            # print(trial_Q_table[key])
+            y = key[0:1]
+            x = key[1:2]
+            
+            max_value = np.max(trial_Q_table[key])
+            # print(max_value)
+            grid_state_count[y][x] += 1            
+            grid_state_value[y][x] = grid_state_value[y][x] + 1/(grid_state_count[y][x]) * (max_value-grid_state_value[y][x])
+        
         # Testing
         # print('=================================Q-Table Values==============================')
         # for key in trial_Q_table.keys():
@@ -838,7 +888,7 @@ class SARSAAgent():
             
         # agent.Q_table = trial_Q_table
         
-        return trial_Q_table, score_performance
+        return trial_Q_table, grid_state_value, score_performance
         # return policy
 
     def choose_action_per_policy(self, policy, new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard):
@@ -940,7 +990,7 @@ while True:
                 if event.key == pygame.locals.K_q:
                     print('Start Q-Learning')
                     NUM_GAMES = 125000
-                    # NUM_GAMES = 2
+                    # NUM_GAMES = 1
                     ALPHA=0.5
                     DISCOUNT=0.9
                     EPSILON=1
@@ -950,7 +1000,7 @@ while True:
                     
                     # Creat agent and start learning to play
                     agent = QAgent(NUM_GAMES, ALPHA, DISCOUNT, EPSILON, EPSILON_DECAY, EPSILON_MIN) 
-                    policy, score_performance = agent.learn(game)
+                    policy, state_values, score_performance = agent.learn(game)
                     
                     print("Q Agent Learned")
                     
@@ -962,10 +1012,26 @@ while True:
                     plt.plot(score_performance)
                     plt.show()
                   
+                    # Display state-values per location in color map        
+                    fig = plt.figure(figsize=(6, 4))
+                    ax = fig.add_subplot(111)
+                    ax.set_title('State Value for y-x states (Q)')
+                    plt.imshow(state_values, extent=[0,6,6,0])
+                    ax.set_aspect('equal')
+                    
+                    cax = fig.add_axes([0.12, 0.1, 0.78, 0.8])
+                    cax.get_xaxis().set_visible(False)
+                    cax.get_yaxis().set_visible(False)
+                    cax.patch.set_alpha(0)
+                    cax.set_frame_on(False)
+                    plt.colorbar(orientation='vertical')
+                    plt.show()
+                    
+                  
                 if event.key == pygame.locals.K_d:
                     print('Start Double Q-Learning')
                     NUM_GAMES = 125000
-                    # NUM_GAMES = 2
+                    # NUM_GAMES = 1
                     ALPHA=0.5
                     DISCOUNT=0.9
                     EPSILON=1
@@ -975,7 +1041,7 @@ while True:
                     
                     # Creat agent and start learning to play
                     agent = DQAgent(NUM_GAMES, ALPHA, DISCOUNT, EPSILON, EPSILON_DECAY, EPSILON_MIN) 
-                    policy, score_performance = agent.learn(game)
+                    policy, state_values, score_performance = agent.learn(game)
                     
                     print("Double Q Agent Learned")
                     
@@ -987,11 +1053,26 @@ while True:
                     plt.plot(score_performance)
                     plt.show()
 
+                    # Display state-values per location in color map        
+                    fig = plt.figure(figsize=(6, 4))
+                    ax = fig.add_subplot(111)
+                    ax.set_title('State Value for y-x states (DQ)')
+                    plt.imshow(state_values, extent=[0,6,6,0])
+                    ax.set_aspect('equal')
+                    
+                    cax = fig.add_axes([0.12, 0.1, 0.78, 0.8])
+                    cax.get_xaxis().set_visible(False)
+                    cax.get_yaxis().set_visible(False)
+                    cax.patch.set_alpha(0)
+                    cax.set_frame_on(False)
+                    plt.colorbar(orientation='vertical')
+                    plt.show()
+
                 if event.key == pygame.locals.K_s:
                     print('Start SARSA Learning')
                     NUM_GAMES = 125000
-                    # NUM_GAMES = 2
-                    ALPHA=0.4
+                    # NUM_GAMES = 1
+                    ALPHA=0.5
                     DISCOUNT=0.9
                     EPSILON=1
                     EPSILON_DECAY=0.99996
@@ -1000,7 +1081,7 @@ while True:
                     
                     # Create agent and start learning to play
                     agent = SARSAAgent(NUM_GAMES, ALPHA, DISCOUNT, EPSILON, EPSILON_DECAY, EPSILON_MIN) 
-                    policy, score_performance = agent.learn(game)
+                    policy, state_values, score_performance = agent.learn(game)
                                         
                     print("SARSA Agent Learned")
                     
@@ -1011,7 +1092,24 @@ while True:
                     plt.ylabel('Running Average Score')
                     plt.plot(score_performance)
                     plt.show()
-                               
+                    
+                    # Display state-values per location in color map        
+                    fig = plt.figure(figsize=(6, 4))
+                    ax = fig.add_subplot(111)
+                    ax.set_title('State Value for y-x states (DQ)')
+                    plt.imshow(state_values, extent=[0,6,6,0])
+                    ax.set_aspect('equal')
+                    
+                    cax = fig.add_axes([0.12, 0.1, 0.78, 0.8])
+                    cax.get_xaxis().set_visible(False)
+                    cax.get_yaxis().set_visible(False)
+                    cax.patch.set_alpha(0)
+                    cax.set_frame_on(False)
+                    plt.colorbar(orientation='vertical')
+                    plt.show()
+    
+    # end key event handler        
+    
     window.display(score, [new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard], action_dict[action], game.environment, agent, playing)
 
 
@@ -1020,12 +1118,11 @@ while True:
         print('Game Over')
         playing=game.stop_game()
                         
-    ## End Event Handler            
     
     
 #%% Testing
 
-# import numpy as np
+import numpy as np
 
 # action_Q_values = np.ndarray((len(policy.items()),4))
 
@@ -1044,23 +1141,57 @@ while True:
 # print(average)
 
 
+grid_state_value = np.empty((6,6))
+print(grid_state_value)
+
+d1 = {(1, 1, 0) : [1,1,1,1], (0, 0, 0) : [1,1,1,1], (1, 1, 1) : [1,1,1,1]}
+d2 = {(1, 1, 0) : [1,1,1,1]}
 
 
-d1 = {1 : [1,1,1,1]}
-d2 = {1 : [1,1,1,1]}
+# print(type(d1.keys()))
 
 
 
+x = set([i[0:2] for i in d1.keys()])
+
+for n in x:    
+    print(n)
+
+
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# H = np.array([[1, 2, 3, 4],
+#               [5, 6, 7, 8],
+#               [9, 10, 11, 12],
+#               [13, 14, 15, 16]])  # added some commas and array creation code
+
+# fig = plt.figure(figsize=(6, 3.2))
+
+# ax = fig.add_subplot(111)
+# ax.set_title('Optimal Value for Cell x-y states')
+# plt.imshow(H, extent=[0,6,6,0])
+# ax.set_aspect('equal')
+
+# cax = fig.add_axes([0.12, 0.1, 0.78, 0.8])
+# cax.get_xaxis().set_visible(False)
+# cax.get_yaxis().set_visible(False)
+# cax.patch.set_alpha(0)
+# cax.set_frame_on(False)
+# plt.colorbar(orientation='vertical')
+# plt.show()
 
 # d3 = np.add((d1.get(1, False) or [0,0,0,0]), (d2.get(1, False) or [0,0,0,0]))
 # variable_name = my_dict.get('keyname', False) or 'something else'
 # print(d1.get(1, False) or np.array([0,0,0,0]))
 
 
-test = d1.get(1, False) or [0,0,0,0]
+# test = d1.get(1, False) or [0,0,0,0]
 
-print(type(d1))
-print(type(test))
+# print(type(d1))
+# print(type(test))
 # print(np.where(np.array([0,0,0,0])))
 
 
@@ -1074,13 +1205,22 @@ print(type(test))
 
 # print(np.add([0,0,0,0],[1,1,1,1]))
 
-Q = [10,-5,0,0]
+# Q = [10,-5,0,0]
 
-current_epsilon = 0.4
-probabilities = np.array([(1-current_epsilon)/3,(1-current_epsilon)/3,(1-current_epsilon)/3,(1-current_epsilon)/3])
+# current_epsilon = 0.4
+# probabilities = np.array([(1-current_epsilon)/3,(1-current_epsilon)/3,(1-current_epsilon)/3,(1-current_epsilon)/3])
 
-probabilities[np.argmax(Q)] = current_epsilon
+# probabilities[np.argmax(Q)] = current_epsilon
 
 
-total_value = np.multiply(Q, probabilities)
-print(np.sum(total_value))
+# total_value = np.multiply(Q, probabilities)
+# print(np.sum(total_value))
+
+
+
+
+a = np.array([1,1])
+b = np.array([2,2])
+
+print(np.add(a,b)/2)
+
