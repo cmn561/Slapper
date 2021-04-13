@@ -945,6 +945,7 @@ while True:
                     # pygame.quit()
             
                 if event.key == pygame.locals.K_a:
+                    print('Sim an agent move with agent : {0}'.format(type(agent)))
                     action = agent.choose_action_per_policy(policy, new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard)
                     new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score, game_done = game.update(action) 
             
@@ -972,13 +973,12 @@ while True:
                     # new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score, game_done = game.update(action)
                     new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score, game_done = game.update(action)
                 
-                if event.key == pygame.locals.K_s:    
-                    # if (bool(policy) == True):
-                    print('Sim an agent move with agent : {0}'.format(type(agent)))
-                    action = agent.choose_action_per_policy(policy, new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard)
-                    new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score, game_done = game.update(action)     
-                    # else:
-                    #     print('No Policy to Simulate Play')
+                # if event.key == pygame.locals.K_s:    
+                #     # if (bool(policy) == True):
+                #     action = agent.choose_action_per_policy(policy, new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard)
+                #     new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score, game_done = game.update(action)     
+                #     # else:
+                #     #     print('No Policy to Simulate Play')
 
             else:
                 if event.key == pygame.locals.K_p:
