@@ -40,7 +40,7 @@ Since then, AlphaGo has been expanded to include other games in its belt of expe
 Using reinforcement learning, the people of DeepMind have created a system that eerily resembles how people normally learn to play video games; i.e. through hours of practice and trial and error. 
 
 
-This project (while not nearly as impressive) is my attempt to create a simple deep learning game that can learn to play the game of "Slapper" (definitely not inspired by the Frogger game series).
+This project (while not nearly as impressive) is my attempt to create a simple reinforcement learning game that can learn to play the game of "Slapper" (definitely not inspired by the Frogger game series).
 
 	
 Slapper Instructions:
