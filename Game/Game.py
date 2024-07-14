@@ -5,8 +5,11 @@ Created on Sun Jul 14 17:36:57 2024
 @author: Cristian Navarrete
 """
 
+from AssetManager import SoundManager
+
 from time import sleep
 import random
+import pygame
 
 
 #%% Game Class Defintion (for managing the game)
@@ -23,7 +26,10 @@ class Game():
         self.current_x = start_x
         self.is_running = False
         
+        pygame.init()
+        
         self.environment = [[1,1,1,1,1,1],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
+        self.sound_manager = SoundManager.SoundManager()
      
 
     def initialize_player_grid(self):
@@ -152,13 +158,17 @@ class Game():
         score=0
         if ((self.current_y, self.current_x) in self.win_states):
             score = self.reward
+            self.sound_manager.play_success_effect()
             done = True
             
         # Check If Lose
-        if (self.environment[self.current_y][self.current_x] == -1):
+        elif (self.environment[self.current_y][self.current_x] == -1):
             # score = -15
             score = - self.reward
+            self.sound_manager.play_failure_effect()
             done = True
+        else:
+            self.sound_manager.play_move_effect()
         
         h_onHazard = 1 if done==True else 0
         

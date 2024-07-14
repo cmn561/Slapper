@@ -10,6 +10,7 @@ from Game import Game
 from Game import Window
 from Agents import Agent
 
+
 ## Global Packages
 
 # import numpy as np
@@ -20,7 +21,7 @@ import pygame
 # from pygame.locals import *
 
 
-#%% Initiialize Classes and Start Playing
+#%% Initiialize Variables
 
 width, height = 1000, 600
 background_color = 250, 250, 250
@@ -40,10 +41,10 @@ score=0
 playing = False
 game_done = False
 
-
-
 # new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score = game.initialize_player_grid()
 new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score = game.initialize_player_grid()
+
+#%% Start Playing
 
 # Event loop
 while True:
@@ -76,12 +77,12 @@ while True:
                     action=1
                     # new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score, game_done = game.update(action)
                     new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score, game_done = game.update(action)
-   
+    
                 if event.key == pygame.locals.K_DOWN:
                     # print('Move Down')
                     action=2
                     # new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score, game_done = game.update(action)
-                    new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score, game_done = game.update(action)
+                    new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score, game_done = game.update(action)                   
 
                 if event.key == pygame.locals.K_LEFT:
                     # print('Move Left')

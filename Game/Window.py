@@ -27,7 +27,7 @@ class Window():
         self.goal_color = (0,0,250)
         
         # Initialise screen
-        pygame.init()
+        # pygame.init()
         self.screen = pygame.display.set_mode((window_width, window_height))
         pygame.display.set_caption('Slapper Q-Learning')
 
