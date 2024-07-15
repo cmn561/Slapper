@@ -257,7 +257,7 @@ class Game():
             done = True
             
         # Check If Lose
-        if (self.environment[self.current_y][self.current_x] == -1):
+        elif (self.environment[self.current_y][self.current_x] == -1 or (action==1 and self.environment[self.current_y][self.current_x-1] == -1)):
             # score = -15
             score = - self.reward
             done = True
