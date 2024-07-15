@@ -161,8 +161,8 @@ class Game():
             self.sound_manager.play_success_effect()
             done = True
             
-        # Check If Lose
-        elif (self.environment[self.current_y][self.current_x] == -1):
+        # Check If Lose (Lose if currently on a hazard square or if collided with a hazard while moving right)
+        elif (self.environment[self.current_y][self.current_x] == -1 or (action==1 and self.environment[self.current_y][self.current_x-1] == -1)):
             # score = -15
             score = - self.reward
             self.sound_manager.play_failure_effect()
