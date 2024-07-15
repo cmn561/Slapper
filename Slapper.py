@@ -10,16 +10,13 @@ from Game import Game
 from Game import Window
 from Agents import Agent
 
-
 ## Global Packages
-
 # import numpy as np
 import matplotlib.pyplot as plt
 # import random
 
 import pygame
 # from pygame.locals import *
-
 
 #%% Initiialize Variables
 
