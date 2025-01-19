@@ -28,7 +28,9 @@ class Game():
         
         pygame.init()
         
+        # Environments contain the present and past states of objects in the game
         self.environment = [[1,1,1,1,1,1],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
+        self.transition_environment = [[1,1,1,1,1,1],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
         self.sound_manager = SoundManager.SoundManager()
      
 
@@ -83,6 +85,9 @@ class Game():
  
     # Taking player's action
     def update(self, action):
+        # For transitiong to new environment with animations
+        self.transition_environment = self.environment
+        
         # UP
         if (action==0):
             if (self.current_y != 0):
