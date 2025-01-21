@@ -29,7 +29,7 @@ agent = Agent.DefaultAgent()
 policy={}
 
 window = Window.Window(width, height, background_color)
-window.display(0, [0,0,0,0,0,0,0,0,0,0], '', game.environment, agent, 0)
+window.display(0, [0,0,0,0,0,0,0,0,0,0], '', game.environment, game.transition_environment, agent, 0)
 
 # Game Parameters
 action_dict = {0 : "UP", 1 : "RIGHT", 2 : "DOWN", 3 : "LEFT", -1: "Null"}
@@ -37,6 +37,7 @@ action=-1
 score=0
 playing = False
 game_done = False
+animating = False
 
 # new_y, new_x, haz_N, haz_E, haz_S, haz_W, haz_NE, haz_SE, haz_SW, haz_NW, score = game.initialize_player_grid()
 new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard, score = game.initialize_player_grid()
@@ -52,7 +53,7 @@ while True:
             
         elif event.type == pygame.locals.KEYDOWN:
             # If Game is currently playing
-            if game.is_game_running():
+            if game.is_game_running() and animating is False:
                 if event.key == pygame.locals.K_ESCAPE:
                     print('Stop Game')
                     playing=game.stop_game()
@@ -222,9 +223,9 @@ while True:
                     plt.colorbar(orientation='vertical')
                     plt.show()
     
-    # end key event handler        
+    # END KEYBOARD EVENT HANDLER       
     
-    window.display(score, [new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard], action_dict[action], game.environment, agent, playing)
+    window.display(score, [new_y, new_x, haz_NE, haz_SE, haz_SW, haz_NW, h_onHazard], action_dict[action], game.environment, game.transition_environment, agent, animating, playing)
 
 
     # Check if game finished

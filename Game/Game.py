@@ -28,7 +28,9 @@ class Game():
         
         pygame.init()
         
+        # Environments contain the present and past states of objects in the game
         self.environment = [[1,1,1,1,1,1],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
+        self.transition_environment = [[1,1,1,1,1,1],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
         self.sound_manager = SoundManager.SoundManager()
      
 
@@ -83,6 +85,9 @@ class Game():
  
     # Taking player's action
     def update(self, action):
+        # For transitiong to new environment with animations
+        self.transition_environment = self.environment
+        
         # UP
         if (action==0):
             if (self.current_y != 0):
@@ -257,7 +262,7 @@ class Game():
             done = True
             
         # Check If Lose
-        if (self.environment[self.current_y][self.current_x] == -1):
+        elif (self.environment[self.current_y][self.current_x] == -1 or (action==1 and self.environment[self.current_y][self.current_x-1] == -1)):
             # score = -15
             score = - self.reward
             done = True

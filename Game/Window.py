@@ -7,6 +7,7 @@ Created on Sun Jul 14 17:34:00 2024
 
 import pygame
 from pygame.locals import *
+from Game import AnimationHandler
 
 #%% Window Class Defintion (for displaying the game)
 
@@ -35,9 +36,9 @@ class Window():
         self.background = self.background.convert()
         self.background.fill(background_color)
         self.font = pygame.font.Font(None, 24)
-        
+        self.anim_handler = AnimationHandler.AnimationHandler()
 
-    def display(self, score, state, action, environment, agent, playing=False):     
+    def display(self, score, state, action, environment, transition_environment, agent, animating, playing=False):     
         self.screen.blit(self.background, (0, 0))
         self.background.fill(self.background_color)
 
@@ -88,26 +89,33 @@ class Window():
 
         # Display Game Objects if playing
         if playing:
-                        
-            # Draw Current Environment(hazards and goal)
-            for i in range(len(environment)):
-                for j in range(len(environment[i])):
-                    
-                    # Goal Cell
-                    if environment[i][j] == 1:
-                        goal=pygame.Rect(j*self.block_dim, i*self.block_dim, self.block_dim, self.block_dim)
-                        pygame.draw.rect(self.background, self.goal_color, goal)
-                        
-                        goal_text = self.font.render("GOAL" , 1, (0, 0, 0))
-                        self.background.blit(goal_text, (j*self.block_dim + self.block_dim/4, i*self.block_dim + self.block_dim/2))
+            print(1)
 
-                    # Hazard Cell
-                    if environment[i][j] == -1:
-                        hazard=pygame.Rect(j*self.block_dim, i*self.block_dim, self.block_dim, self.block_dim)
-                        pygame.draw.rect(self.background, self.hazard_color, hazard)
+            # Window will draw all static objects
+            if not animating:                        
+                # Draw Current Environment(hazards and goal)
+                for i in range(len(environment)):
+                    for j in range(len(environment[i])):
+                        
+                        # Goal Cell
+                        if environment[i][j] == 1:
+                            goal=pygame.Rect(j*self.block_dim, i*self.block_dim, self.block_dim, self.block_dim)
+                            pygame.draw.rect(self.background, self.goal_color, goal)
+                            
+                            goal_text = self.font.render("GOAL" , 1, (0, 0, 0))
+                            self.background.blit(goal_text, (j*self.block_dim + self.block_dim/4, i*self.block_dim + self.block_dim/2))
+    
+                        # Hazard Cell
+                        if environment[i][j] == -1:
+                            hazard=pygame.Rect(j*self.block_dim, i*self.block_dim, self.block_dim, self.block_dim)
+                            pygame.draw.rect(self.background, self.hazard_color, hazard)
         
-            # Draw Player
-            player=pygame.Rect(state[1]*self.block_dim + self.player_offset, state[0]*self.block_dim + self.player_offset, self.block_dim/2, self.block_dim/2)
-            pygame.draw.rect(self.background, self.player_color, player)
+                # Draw Player
+                player=pygame.Rect(state[1]*self.block_dim + self.player_offset, state[0]*self.block_dim + self.player_offset, self.block_dim/2, self.block_dim/2)
+                pygame.draw.rect(self.background, self.player_color, player)
+            # Animation Handler will draw the objects and their animations
+            else:
+                X=1
             
         pygame.display.flip()
+        
